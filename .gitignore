@@ -49,8 +49,7 @@ htmlcov/
 
 # Project Specific Output / Cache directories
 # Exclude PDFs, fetched JSONs, and generated outputs, but preserve ground-truth files if needed
-pdf/*.pdf
-json/*.json
-md/*_result.md
-md/*_comparison.md
+pdf/
+json/
+md/
 comparison.md
