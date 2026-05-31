@@ -1,4 +1,4 @@
-from amas.utils.xml_table import parse_xml_table_to_csv
+from asma.utils.xml_table import parse_xml_table_to_csv
 
 def test_parse_xml_table_to_csv_valid():
     xml_str = """
@@ -54,12 +54,12 @@ def test_parse_xml_table_to_markdown_valid():
         </tbody>
     </table>
     """
-    from amas.utils.xml_table import parse_xml_table_to_markdown
+    from asma.utils.xml_table import parse_xml_table_to_markdown
     md_out = parse_xml_table_to_markdown(xml_str)
     assert "| Col A | Col B |" in md_out
     assert "| :--- | :--- |" in md_out
     assert "| Data 1 | Data 2 |" in md_out
 
 def test_parse_xml_table_to_markdown_no_table():
-    from amas.utils.xml_table import parse_xml_table_to_markdown
+    from asma.utils.xml_table import parse_xml_table_to_markdown
     assert parse_xml_table_to_markdown("invalid") == ""

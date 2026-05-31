@@ -1,6 +1,6 @@
 import logging
 from typing import Callable, Optional
-from amas.interfaces.llm import LLMProvider
+from asma.interfaces.llm import LLMProvider
 
 logger = logging.getLogger(__name__)
 

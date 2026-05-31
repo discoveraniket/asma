@@ -49,13 +49,13 @@ DEFAULT_EXTRACTION_PROMPT_TEMPLATE = DEFAULT_EXTRACTION_PROMPT_LAYOUT.format(
 )
 
 @dataclass
-class AmasConfig:
+class AsmaConfig:
     """
-    Configuration options for the amas library.
+    Configuration options for the asma library.
     """
     model_name: str = "google/gemma-4-e2b"
-    ncbi_email: str = "amas@example.com"
-    ncbi_tool: str = "amas_extractor"
+    ncbi_email: str = "asma@example.com"
+    ncbi_tool: str = "asma_extractor"
     instructions: str = DEFAULT_INSTRUCTIONS
     fields: List[str] = field(default_factory=lambda: list(DEFAULT_FIELDS))
     prompt_layout: str = DEFAULT_EXTRACTION_PROMPT_LAYOUT

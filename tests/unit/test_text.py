@@ -1,4 +1,4 @@
-from amas.utils.text import clean_text, extract_metadata_llm
+from asma.utils.text import clean_text, extract_metadata_llm
 
 def test_clean_text_normalizes_whitespace():
     assert clean_text("  hello   world  ") == "hello world"
@@ -36,7 +36,7 @@ def test_extract_metadata_llm_full():
     assert extract_metadata_llm(infons) == expected
 
 def test_split_llm_response():
-    from amas.utils.text import split_llm_response
+    from asma.utils.text import split_llm_response
     
     # Test LM Studio gemma-4 format
     raw_lms = "<|channel>thought\nThinking process\n<channel|>\nActual response output"

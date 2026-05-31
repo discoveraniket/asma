@@ -1,8 +1,8 @@
 import logging
 from typing import Dict, Any, Union, List, Callable
 from bioc.biocjson.decoder import parse_collection
-from amas.utils.text import clean_text, clean_text_keep_citations, extract_metadata_llm
-from amas.utils.xml_table import parse_xml_table_to_csv, parse_xml_table_to_markdown
+from asma.utils.text import clean_text, clean_text_keep_citations, extract_metadata_llm
+from asma.utils.xml_table import parse_xml_table_to_csv, parse_xml_table_to_markdown
 
 logger = logging.getLogger(__name__)
 
@@ -109,9 +109,9 @@ def parse_bioc_to_llm_markdown(
     Args:
         bioc_data: The raw BioC collection JSON dictionary or list.
         clean_text_fn: Callback function to clean and normalize passage text.
-                       Defaults to `amas.utils.text.clean_text`.
+                       Defaults to `asma.utils.text.clean_text`.
         table_parser_fn: Callback function to convert XML tables to CSV strings.
-                         Defaults to `amas.utils.xml_table.parse_xml_table_to_csv`.
+                         Defaults to `asma.utils.xml_table.parse_xml_table_to_csv`.
 
     Returns:
         The clean Markdown string representation of the document.
@@ -134,9 +134,9 @@ def parse_bioc_to_human_markdown(
     Args:
         bioc_data: The raw BioC collection JSON dictionary or list.
         clean_text_fn: Callback function to clean and normalize passage text.
-                       Defaults to `amas.utils.text.clean_text_keep_citations`.
+                       Defaults to `asma.utils.text.clean_text_keep_citations`.
         table_parser_fn: Callback function to convert XML tables to Markdown table strings.
-                         Defaults to `amas.utils.xml_table.parse_xml_table_to_markdown`.
+                         Defaults to `asma.utils.xml_table.parse_xml_table_to_markdown`.
 
     Returns:
         The beautiful Markdown string representation of the document.

@@ -2,7 +2,7 @@ import logging
 import requests
 import backoff
 from typing import Dict, Any, Optional
-from amas.interfaces.fetcher import ArticleFetcher
+from asma.interfaces.fetcher import ArticleFetcher
 
 logger = logging.getLogger(__name__)
 
@@ -12,8 +12,8 @@ class PmcFetcher(ArticleFetcher):
     """
     def __init__(
         self, 
-        email: str = "amas@example.com", 
-        tool: str = "amas_extractor",
+        email: str = "asma@example.com", 
+        tool: str = "asma_extractor",
         idconv_base_url: str = "https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/",
         bionlp_base_url: str = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful",
         max_tries: int = 3

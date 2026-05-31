@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import MagicMock
-from amas.core.parser import parse_bioc_to_llm_markdown
-from amas.core.evaluator import Evaluator, clean_llm_response
+from asma.core.parser import parse_bioc_to_llm_markdown
+from asma.core.evaluator import Evaluator, clean_llm_response
 
 def test_clean_llm_response():
     msg = "<|channel>thought\nSome thoughts here\n<channel|>\nActual Response content"
@@ -107,7 +107,7 @@ def test_parse_bioc_to_markdown_custom_callbacks():
     assert "THIS IS RAW TEXT." in markdown
 
 def test_parse_bioc_to_human_markdown():
-    from amas.core.parser import parse_bioc_to_human_markdown
+    from asma.core.parser import parse_bioc_to_human_markdown
     bioc_data = {
         "source": "PMC",
         "date": "2026-05-30",
@@ -149,9 +149,9 @@ def test_parse_bioc_to_human_markdown():
     assert "| :--- |" in markdown
     assert "| D1 |" in markdown
 
-def test_amas_config_build_prompt():
-    from amas.config import AmasConfig
-    config = AmasConfig()
+def test_asma_config_build_prompt():
+    from asma.config import AsmaConfig
+    config = AsmaConfig()
     
     # Test default prompt construction
     prompt = config.build_prompt(document="Mock text document content.")

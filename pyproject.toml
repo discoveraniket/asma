@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "amas"
+name = "asma"
 version = "0.1.0"
-description = "Article Mining & Analysis Structurer (amas)"
+description = "Automated System for Mining Articles (asma)"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
@@ -41,4 +41,4 @@ dev = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-amas = ["py.typed"]
+asma = ["py.typed"]

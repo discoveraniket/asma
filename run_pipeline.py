@@ -7,8 +7,8 @@ from pathlib import Path
 import fitz  # PyMuPDF
 from tqdm import tqdm
 
-from amas import (
-    AmasConfig,
+from asma import (
+    AsmaConfig,
     CrossrefResolver,
     PmcFetcher,
     LMStudioProvider,
@@ -22,9 +22,9 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
-logger = logging.getLogger("amas_runner")
+logger = logging.getLogger("asma_runner")
 
-def run_pipeline(pdf_name: str, config: AmasConfig):
+def run_pipeline(pdf_name: str, config: AsmaConfig):
     # Ensure output directories exist
     os.makedirs("./json", exist_ok=True)
     os.makedirs("./md", exist_ok=True)
@@ -91,7 +91,7 @@ def run_pipeline(pdf_name: str, config: AmasConfig):
         pbar.close()
         
         # Clean reasoning thought blocks if any
-        from amas import clean_llm_response
+        from asma import clean_llm_response
         extracted_data = clean_llm_response(raw_extraction)
         
         result_path = f"./md/{pdf_name}_result.md"
@@ -143,10 +143,10 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         pdf_name_arg = sys.argv[1]
         
-    config = AmasConfig(
+    config = AsmaConfig(
         model_name="google/gemma-4-e2b",
-        ncbi_email="amas@example.com",
-        ncbi_tool="amas_extractor"
+        ncbi_email="asma@example.com",
+        ncbi_tool="asma_extractor"
     )
     
     run_pipeline(pdf_name_arg, config)

@@ -1,6 +1,6 @@
-# `amas` — Article Mining & Analysis Structurer
+# `asma` — Automated System for Mining Articles
 
-`amas` is a modular, extensible Python library designed to automate the ingestion, parsing, and structured extraction of scientific research articles from PDFs using NCBI PMC APIs and local Large Language Models (LLMs).
+`asma` is a modular, extensible Python library designed to automate the ingestion, parsing, and structured extraction of scientific research articles from PDFs using NCBI PMC APIs and local Large Language Models (LLMs).
 
 ## Features
 
@@ -19,7 +19,7 @@
 
 ```text
 ├── src/
-│   └── amas/              # Main library source code
+│   └── asma/              # Main library source code
 │       ├── core/          # Markdown parsing and Evaluation engine
 │       ├── providers/     # Crossref resolvers, PMC fetchers, LM Studio client
 │       ├── utils/         # PDF helpers, XML parsers, text utils
@@ -28,7 +28,7 @@
 ├── run_pipeline.py        # End-to-end command-line orchestrator
 ├── pipeline.ipynb         # Interactive Jupyter demo notebook
 ├── pyproject.toml         # Package definition (PEP-621)
-└── amas_documentation.md  # Detailed SDK reference & developer guide
+└── asma_documentation.md  # Detailed SDK reference & developer guide
 ```
 
 ---
@@ -44,7 +44,7 @@ pip install -e .
 
 To enable local PDF DOI extraction, install the PDF support extras (installs `PyMuPDF`):
 ```bash
-pip install amas[pdf]
+pip install asma[pdf]
 ```
 
 ### 2. Run the Orchestrator
@@ -56,4 +56,4 @@ python run_pipeline.py 36374021
 
 ### 3. Detailed Documentation
 
-For a comprehensive guide covering custom schemas, extending providers (like Ollama), streaming controls, and the testing framework, read the [Developer Reference Guide](amas_documentation.md).
+For a comprehensive guide covering custom schemas, extending providers (like Ollama), streaming controls, and the testing framework, read the [Developer Reference Guide](asma_documentation.md).

@@ -1,9 +1,9 @@
 import pytest
 import responses
 from unittest.mock import MagicMock, patch
-from amas.providers.resolver_crossref import CrossrefResolver
-from amas.providers.fetcher_pmc import PmcFetcher
-from amas.providers.llm_lmstudio import LMStudioProvider
+from asma.providers.resolver_crossref import CrossrefResolver
+from asma.providers.fetcher_pmc import PmcFetcher
+from asma.providers.llm_lmstudio import LMStudioProvider
 
 @responses.activate
 def test_crossref_resolver_success():

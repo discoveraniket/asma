@@ -1,7 +1,7 @@
 import sys
 import pytest
 from unittest.mock import MagicMock, patch
-from amas.utils.document import extract_doi_from_pdf
+from asma.utils.document import extract_doi_from_pdf
 
 def test_extract_doi_from_pdf_success():
     mock_page1 = MagicMock()

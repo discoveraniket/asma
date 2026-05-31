@@ -30,10 +30,10 @@ def extract_doi_from_pdf(
     try:
         import fitz  # Lazy Import of PyMuPDF (fitz)
     except ImportError as e:
-        logger.error("pymupdf (fitz) is not installed. Install it with: pip install amas[pdf]")
+        logger.error("pymupdf (fitz) is not installed. Install it with: pip install asma[pdf]")
         raise ImportError(
             "The pymupdf package is required for PDF DOI extraction. "
-            "Please install it using 'pip install amas[pdf]' or 'pip install pymupdf'."
+            "Please install it using 'pip install asma[pdf]' or 'pip install pymupdf'."
         ) from e
 
     path = Path(pdf_path)

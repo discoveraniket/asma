@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from amas.interfaces.resolver import MetadataResolver
+from asma.interfaces.resolver import MetadataResolver
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def validate_doi(
         return resolver.resolve_doi(doi) is not None
 
     if method.lower() == "crossref":
-        from amas.providers.resolver_crossref import CrossrefResolver
+        from asma.providers.resolver_crossref import CrossrefResolver
         active_resolver = CrossrefResolver()
         result = active_resolver.resolve_doi(doi)
         return result is not None

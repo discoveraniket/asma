@@ -1,6 +1,6 @@
 import logging
 from typing import Optional
-from amas.interfaces.llm import LLMProvider
+from asma.interfaces.llm import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ Do not include any introductory or concluding sentences outside of the table.
 | [Key] | [prediction] | [ground_truth] | [Calculated Score] | [Your detailed analysis of the discrepancy] |
 """
 
-from amas.utils.text import split_llm_response
+from asma.utils.text import split_llm_response
 
 def clean_llm_response(message: str) -> str:
     """

@@ -1,9 +1,9 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from amas.utils.doi import validate_doi
+from asma.utils.doi import validate_doi
 
 def test_validate_doi_default_success():
-    with patch("amas.providers.resolver_crossref.CrossrefResolver.resolve_doi") as mock_resolve:
+    with patch("asma.providers.resolver_crossref.CrossrefResolver.resolve_doi") as mock_resolve:
         mock_resolve.return_value = {"title": "Test Title"}
         
         is_valid = validate_doi("10.1000/xyz")
@@ -11,7 +11,7 @@ def test_validate_doi_default_success():
         mock_resolve.assert_called_once_with("10.1000/xyz")
 
 def test_validate_doi_default_failure():
-    with patch("amas.providers.resolver_crossref.CrossrefResolver.resolve_doi") as mock_resolve:
+    with patch("asma.providers.resolver_crossref.CrossrefResolver.resolve_doi") as mock_resolve:
         mock_resolve.return_value = None
         
         is_valid = validate_doi("10.1000/xyz")

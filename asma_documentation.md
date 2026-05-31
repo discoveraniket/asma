@@ -1,6 +1,6 @@
-# `amas` Python SDK Documentation
+# `asma` Python SDK Documentation
 
-**`amas`** (**Article Mining & Analysis Structurer**) is a lightweight, modular, and developer-friendly Python library designed to streamline the process of transforming unstructured scientific research manuscripts (PDFs) into structured, queryable data using NCBI/PubMed APIs and Local Large Language Models (LLMs).
+**`asma`** (**Automated System for Mining Articles**) is a lightweight, modular, and developer-friendly Python library designed to streamline the process of transforming unstructured scientific research manuscripts (PDFs) into structured, queryable data using NCBI/PubMed APIs and Local Large Language Models (LLMs).
 
 ---
 
@@ -9,21 +9,21 @@
 2. [Prerequisites (LM Studio Setup)](#2-prerequisites-lm-studio-setup)
 3. [Quick Start Example](#3-quick-start-example)
 4. [API Reference & Core Modules](#4-api-reference--core-modules)
-   - [Document Processing (`amas.utils.document`)](#document-processing-amasutilsdocument)
-   - [DOI Validation (`amas.utils.doi`)](#doi-validation-amasutilsdoi)
-   - [Article Fetching (`amas.providers.fetcher_pmc`)](#article-fetching-amasprovidersfetcher_pmc)
-   - [BioC-to-Markdown Parsers (`amas.core.parser`)](#bioc-to-markdown-parsers-amascoreparser)
-   - [Dynamic Prompt Engineering (`amas.config`)](#dynamic-prompt-engineering-amasconfig)
-   - [LLM Inference Client (`amas.providers.llm_lmstudio`)](#llm-inference-client-amasprovidersllm_lmstudio)
-   - [Evaluation Framework (`amas.core.evaluator`)](#evaluation-framework-amascoreevaluator)
-   - [Custom Tag Splitting (`amas.utils.text`)](#custom-tag-splitting-amasutilstext)
+   - [Document Processing (`asma.utils.document`)](#document-processing-asmautilsdocument)
+   - [DOI Validation (`asma.utils.doi`)](#doi-validation-asmautilsdoi)
+   - [Article Fetching (`asma.providers.fetcher_pmc`)](#article-fetching-asmaprovidersfetcher_pmc)
+   - [BioC-to-Markdown Parsers (`asma.core.parser`)](#bioc-to-markdown-parsers-asmacoreparser)
+   - [Dynamic Prompt Engineering (`asma.config`)](#dynamic-prompt-engineering-asmaconfig)
+   - [LLM Inference Client (`asma.providers.llm_lmstudio`)](#llm-inference-client-asmaprovidersllm_lmstudio)
+   - [Evaluation Framework (`asma.core.evaluator`)](#evaluation-framework-asmacoreevaluator)
+   - [Custom Tag Splitting (`asma.utils.text`)](#custom-tag-splitting-asmautilstext)
 5. [Advanced Customization & Future Extension](#5-advanced-customization--future-extension)
 
 ---
 
 ## 1. Installation & Requirements
 
-Install the core `amas` package in editable mode:
+Install the core `asma` package in editable mode:
 ```bash
 pip install -e .
 ```
@@ -31,7 +31,7 @@ pip install -e .
 ### Optional Extras (PDF Support)
 To extract DOIs directly from local PDF files, you need to install the `pdf` extra dependency (which installs `PyMuPDF` under the hood):
 ```bash
-pip install amas[pdf]
+pip install asma[pdf]
 ```
 
 ### Dependency Configuration
@@ -58,8 +58,8 @@ Here is a complete, copy-pasteable script showing the entire pipeline running en
 
 ```python
 import json
-from amas import (
-    AmasConfig,
+from asma import (
+    AsmaConfig,
     extract_doi_from_pdf,
     validate_doi,
     PmcFetcher,
@@ -69,7 +69,7 @@ from amas import (
 )
 
 # 1. Configuration Setup
-config = AmasConfig(
+config = AsmaConfig(
     model_name="google/gemma-4-e2b",
     ncbi_email="researcher@example.com"
 )
@@ -112,13 +112,13 @@ print(answer)
 
 ## 4. API Reference & Core Modules
 
-### Document Processing (`amas.utils.document`)
+### Document Processing (`asma.utils.document`)
 Exposes local document manipulation helpers.
 
 #### `extract_doi_from_pdf`
 Extracts DOI identifiers from local PDF files using lazy-loading (does not load `fitz` into memory until called).
 ```python
-from amas import extract_doi_from_pdf
+from asma import extract_doi_from_pdf
 
 doi = extract_doi_from_pdf(
     pdf_path="paper.pdf",
@@ -129,13 +129,13 @@ doi = extract_doi_from_pdf(
 
 ---
 
-### DOI Validation (`amas.utils.doi`)
+### DOI Validation (`asma.utils.doi`)
 Performs registry checks on DOIs.
 
 #### `validate_doi`
 Validates DOI presence using Crossref or custom lookup resolvers.
 ```python
-from amas import validate_doi
+from asma import validate_doi
 
 # Validate via default Crossref resolver
 is_valid = validate_doi("10.1128/spectrum.01994-22")
@@ -146,13 +146,13 @@ is_valid = validate_doi("10.1128/spectrum.01994-22", resolver=MyCustomResolver()
 
 ---
 
-### Article Fetching (`amas.providers.fetcher_pmc`)
+### Article Fetching (`asma.providers.fetcher_pmc`)
 Fetches BioC JSON formats from PubMed Central (PMC).
 
 #### `PmcFetcher`
 Resolves DOIs to PMCID/PMID identifiers via NCBI `idconv` and retrieves full-text BioC JSON structures. Features exponential retry backoff.
 ```python
-from amas import PmcFetcher
+from asma import PmcFetcher
 
 fetcher = PmcFetcher(
     email="user@domain.com",  # Required for NCBI API usage
@@ -170,13 +170,13 @@ bioc_data = fetcher.fetch_by_doi("10.1128/spectrum.01994-22")
 
 ---
 
-### BioC-to-Markdown Parsers (`amas.core.parser`)
+### BioC-to-Markdown Parsers (`asma.core.parser`)
 Converts XML/JSON BioC format into Markdown.
 
 #### `parse_bioc_to_llm_markdown`
 Designed specifically for LLM input context. Strips citations (e.g., `[1]`, `[2-4]`) to minimize tokens and converts tables to raw CSV layout (which is easier for LLMs to parse).
 ```python
-from amas import parse_bioc_to_llm_markdown
+from asma import parse_bioc_to_llm_markdown
 
 llm_md = parse_bioc_to_llm_markdown(bioc_data)
 ```
@@ -184,7 +184,7 @@ llm_md = parse_bioc_to_llm_markdown(bioc_data)
 #### `parse_bioc_to_human_markdown`
 Designed for human reading. Preserves citation references and renders XML tables as visually formatted Markdown tables.
 ```python
-from amas import parse_bioc_to_human_markdown
+from asma import parse_bioc_to_human_markdown
 
 human_md = parse_bioc_to_human_markdown(bioc_data)
 ```
@@ -204,15 +204,15 @@ custom_md = parse_bioc_to_llm_markdown(
 
 ---
 
-### Dynamic Prompt Engineering (`amas.config`)
+### Dynamic Prompt Engineering (`asma.config`)
 Decouples prompt instructions from the schema fields to be extracted.
 
-#### `AmasConfig.build_prompt`
+#### `AsmaConfig.build_prompt`
 Constructs the prompt by combining global extraction instructions with specific schema lists.
 ```python
-from amas import AmasConfig
+from asma import AsmaConfig
 
-config = AmasConfig()
+config = AsmaConfig()
 
 # 1. Build prompt with default virology schema fields
 prompt = config.build_prompt(document=llm_friendly_md)
@@ -228,13 +228,13 @@ prompt = config.build_prompt(document=llm_friendly_md, fields=my_fields)
 
 ---
 
-### LLM Inference Client (`amas.providers.llm_lmstudio`)
+### LLM Inference Client (`asma.providers.llm_lmstudio`)
 Client wrapper communicating with LM Studio.
 
 #### `LMStudioProvider`
 Initializes model websocket connections, runs inference, validates token sizes, and controls streaming.
 ```python
-from amas import LMStudioProvider
+from asma import LMStudioProvider
 
 llm = LMStudioProvider(model_name="google/gemma-4-e2b")
 
@@ -250,13 +250,13 @@ raw_response = llm.respond(
 
 ---
 
-### Evaluation Framework (`amas.core.evaluator`)
+### Evaluation Framework (`asma.core.evaluator`)
 Performs double-blind validation checks comparing extraction prediction results to ground truth templates.
 
 #### `Evaluator.evaluate`
 Sends predictions and ground truths into a comparison matrix prompt using the provider client.
 ```python
-from amas import Evaluator, LMStudioProvider
+from asma import Evaluator, LMStudioProvider
 
 llm = LMStudioProvider(model_name="meta-llama-3-8b")
 evaluator = Evaluator(llm_provider=llm)
@@ -271,13 +271,13 @@ comparison_report = evaluator.evaluate(
 
 ---
 
-### Custom Tag Splitting (`amas.utils.text`)
+### Custom Tag Splitting (`asma.utils.text`)
 Unpacks reasoning thought processes from final output results.
 
 #### `split_llm_response`
 Modular tag parsing splitting. Automatically identifies LM Studio's channel tags, DeepSeek `<think>` tags, and supports custom user overrides.
 ```python
-from amas import split_llm_response
+from asma import split_llm_response
 
 # Unpack standard tags
 thought, response = split_llm_response(raw_output)
@@ -299,7 +299,7 @@ The library is fully interface-driven. To add a new provider like **Ollama**, im
 
 ```python
 from typing import Optional, Callable
-from amas import LLMProvider
+from asma import LLMProvider
 
 class OllamaProvider(LLMProvider):
     def __init__(self, model_name: str = "llama3"):
@@ -324,4 +324,4 @@ Now, replace it directly in your pipeline flow:
 llm = OllamaProvider(model_name="gemma2")
 result = llm.respond(prompt)
 ```
-The rest of the `amas` parsing, prompt-building, and validation infrastructure remains exactly the same!
+The rest of the `asma` parsing, prompt-building, and validation infrastructure remains exactly the same!

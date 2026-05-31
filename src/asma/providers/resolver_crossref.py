@@ -1,7 +1,7 @@
 import logging
 from typing import Dict, Any, Optional
 from crossref.restful import Works
-from amas.interfaces.resolver import MetadataResolver
+from asma.interfaces.resolver import MetadataResolver
 
 logger = logging.getLogger(__name__)
 
