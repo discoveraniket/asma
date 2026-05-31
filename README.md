@@ -60,7 +60,12 @@ python run_pipeline.py 36374021
 
 ### 3. Detailed Documentation
 
-For a comprehensive guide covering custom schemas, extending providers (like Ollama), streaming controls, and the testing framework, read the [Developer Reference Guide](asma_documentation.md).
+For a comprehensive guide, read the [Developer Reference Guide](asma_documentation.md). You can jump directly to key sections on GitHub:
+- [Installation & Requirements](asma_documentation.md#1-installation--requirements)
+- [Prerequisites (LM Studio Setup)](asma_documentation.md#2-prerequisites-lm-studio-setup)
+- [Quick Start Code Example](asma_documentation.md#3-quick-start-example)
+- [API Reference & Core Modules](asma_documentation.md#4-api-reference--core-modules)
+- [Advanced Customization & Swapping Providers](asma_documentation.md#5-advanced-customization--future-extension)
 
 ---
 
