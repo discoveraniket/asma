@@ -1,5 +1,9 @@
 # `asma` — Automated System for Mining Articles
 
+[![PyPI version](https://img.shields.io/pypi/v/asma.svg)](https://pypi.org/project/asma/)
+[![Python versions](https://img.shields.io/pypi/pyversions/asma.svg)](https://pypi.org/project/asma/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 `asma` is a modular, extensible Python library designed to automate the ingestion, parsing, and structured extraction of scientific research articles from PDFs using NCBI PMC APIs and local Large Language Models (LLMs).
 
 ## Features
@@ -37,14 +41,14 @@
 
 ### 1. Installation
 
-Install the package in editable mode:
+Install the package directly from PyPI:
 ```bash
-pip install -e .
+pip install asma
 ```
 
-To enable local PDF DOI extraction, install the PDF support extras (installs `PyMuPDF`):
+To enable local PDF DOI extraction, install with the PDF support extra (which installs `PyMuPDF`):
 ```bash
-pip install asma[pdf]
+pip install "asma[pdf]"
 ```
 
 ### 2. Run the Orchestrator
@@ -57,3 +61,23 @@ python run_pipeline.py 36374021
 ### 3. Detailed Documentation
 
 For a comprehensive guide covering custom schemas, extending providers (like Ollama), streaming controls, and the testing framework, read the [Developer Reference Guide](asma_documentation.md).
+
+---
+
+## Local Development & Contribution
+
+If you want to contribute or build from source:
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/<your-username>/asma.git
+   cd asma
+   ```
+2. Install in editable mode with development dependencies:
+   ```bash
+   pip install -e .[dev]
+   ```
+3. Run the unit test suite:
+   ```bash
+   pytest
+   ```
