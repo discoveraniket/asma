@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "amas"
+version = "0.1.0"
+description = "Article Mining & Analysis Structurer (amas)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [
+    { name = "Aniket Sarkar" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "crossrefapi>=1.5.0",
+    "backoff>=2.2.0",
+    "requests>=2.30.0",
+    "bioc>=2.0",
+    "beautifulsoup4>=4.12.0",
+    "lmstudio>=0.1.0",
+    "tqdm>=4.65.0",
+    "lxml>=4.9.0",
+]
+
+[project.optional-dependencies]
+pdf = [
+    "pymupdf>=1.22.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "responses>=0.23.0",
+    "pymupdf>=1.22.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+amas = ["py.typed"]
