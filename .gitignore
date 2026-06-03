@@ -43,6 +43,7 @@ htmlcov/
 # Jupyter Notebooks
 .ipynb_checkpoints
 pipeline.ipynb
+imp_extrac.ipynb
 
 # Local IDEs
 .vscode/

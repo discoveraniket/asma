@@ -11,6 +11,7 @@ from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response
 from asma.utils.xml_table import parse_xml_table_to_csv
 from asma.utils.document import extract_doi_from_pdf
 from asma.utils.doi import validate_doi
+from asma.utils.alignment import find_source_sentences
 
 __all__ = [
     "AsmaConfig",
@@ -32,5 +33,6 @@ __all__ = [
     "parse_xml_table_to_csv",
     "extract_doi_from_pdf",
     "validate_doi",
-    "split_llm_response"
+    "split_llm_response",
+    "find_source_sentences"
 ]
