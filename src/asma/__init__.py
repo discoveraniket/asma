@@ -7,6 +7,7 @@ from asma.providers.fetcher_pmc import PmcFetcher
 from asma.providers.llm_lmstudio import LMStudioProvider
 from asma.core.parser import parse_bioc_to_llm_markdown, parse_bioc_to_human_markdown
 from asma.core.evaluator import Evaluator, clean_llm_response
+from asma.core.ingester import DocumentIngester
 from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response
 from asma.utils.xml_table import parse_xml_table_to_csv
 from asma.utils.document import extract_doi_from_pdf
@@ -28,6 +29,7 @@ __all__ = [
     "parse_bioc_to_human_markdown",
     "Evaluator",
     "clean_llm_response",
+    "DocumentIngester",
     "clean_text",
     "extract_metadata_llm",
     "parse_xml_table_to_csv",
