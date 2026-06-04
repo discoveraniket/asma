@@ -23,3 +23,21 @@ class LLMProvider(ABC):
             **kwargs: Extra model-specific generation parameters (e.g., temperature, max_tokens).
         """
         pass
+
+    def respond_chat(
+        self,
+        chat_history: list,
+        progress_callback: Optional[Callable[[float], None]] = None,
+        stream: bool = True,
+        **kwargs
+    ) -> str:
+        """
+        Sends a multi-turn chat history (list of role/content dicts) to the LLM
+        and returns the raw string content response of the final turn.
+        
+        Args:
+            chat_history: List of dictionaries like [{"role": "system"/"user"/"assistant", "content": "..."}].
+            progress_callback: Callback function for progress updates.
+            stream: Whether to stream fragments/output.
+        """
+        raise NotImplementedError("Conversational chat is not supported by this provider.")

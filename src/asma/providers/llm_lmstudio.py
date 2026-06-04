@@ -37,7 +37,7 @@ class LMStudioProvider(LLMProvider):
         
         chat = lms.Chat()
         if system_instruction:
-            chat.add_system_message(system_instruction)
+            chat.add_system_prompt(system_instruction)
         chat.add_user_message(prompt)
         
         # 1. Safety check: Token count vs Context length
@@ -96,3 +96,78 @@ class LMStudioProvider(LLMProvider):
         except Exception as e:
             logger.error(f"LM Studio response generation failed: {e}")
             raise RuntimeError(f"LM Studio inference error: {e}") from e
+
+    def respond_chat(
+        self,
+        chat_history: list,
+        progress_callback: Optional[Callable[[float], None]] = None,
+        stream: bool = True,
+        **kwargs
+    ) -> str:
+        import lmstudio as lms
+        import sys
+        
+        chat = lms.Chat()
+        for msg in chat_history:
+            role = msg.get("role")
+            content = msg.get("content", "")
+            if role == "system":
+                chat.add_system_prompt(content)
+            elif role == "user":
+                chat.add_user_message(content)
+            elif role == "assistant":
+                chat.add_assistant_response(content)
+
+        # 1. Safety check: Token count vs Context length
+        ignore_limit = kwargs.pop("ignore_context_limit", False)
+        try:
+            prompt_str = self.model.apply_prompt_template(chat)
+            tokens = len(self.model.tokenize(prompt_str))
+            context_len = self.model.get_context_length()
+            
+            logger.info(f"Chat history token count: {tokens} | Model context length: {context_len}")
+            
+            if tokens > context_len and not ignore_limit:
+                raise ValueError(
+                    f"Chat history contains {tokens} tokens, which exceeds the model's context window limit "
+                    f"of {context_len} tokens. This will cause truncation or failure. "
+                    "Shorten your document or pass `ignore_context_limit=True` to bypass this check."
+                )
+        except ValueError:
+            raise
+        except Exception as e:
+            logger.warning(f"Could not compute context window limit safety check: {e}")
+
+        # 2. Setup progress/streaming callbacks
+        prompt_progress_fn = progress_callback
+        if prompt_progress_fn is None and "on_prompt_processing_progress" not in kwargs:
+            def default_prompt_progress(progress: float):
+                percent = int(progress * 100)
+                sys.stdout.write(f"\r[LM Studio] Reading chat prompt: {percent}%")
+                sys.stdout.flush()
+                if percent >= 100:
+                    sys.stdout.write("\n[LM Studio] Generating response...\n")
+                    sys.stdout.flush()
+            kwargs["on_prompt_processing_progress"] = default_prompt_progress
+        elif prompt_progress_fn is not None:
+            kwargs["on_prompt_processing_progress"] = prompt_progress_fn
+
+        if stream:
+            if "on_prediction_fragment" not in kwargs:
+                def default_prediction_fragment(frag):
+                    sys.stdout.write(frag.content)
+                    sys.stdout.flush()
+                kwargs["on_prediction_fragment"] = default_prediction_fragment
+
+        logger.info("Sending chat request to LM Studio...")
+        try:
+            result = self.model.respond(
+                chat,
+                **kwargs
+            )
+            if stream:
+                print()
+            return result.content
+        except Exception as e:
+            logger.error(f"LM Studio chat response generation failed: {e}")
+            raise RuntimeError(f"LM Studio chat inference error: {e}") from e
