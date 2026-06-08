@@ -94,36 +94,53 @@ class PmcFetcher(ArticleFetcher):
         pmcid = record.get('pmcid')
         pmid = record.get('pmid')
 
-        if pmcid:
-            target_id = pmcid
-            api_endpoint = "pmcoa.cgi"
-            logger.info(f"Resolved target ID to PMCID: {target_id}")
-        elif pmid:
-            target_id = pmid
-            api_endpoint = "pubmed.cgi"
-            logger.info(f"Resolved target ID to PMID: {target_id}")
-        else:
-            raise ValueError(f"DOI {doi} conversion failed to yield a PMCID or PMID.")
+        bioc_data = None
+        last_error = None
 
-        bioc_url = f"{self.bionlp_base_url}/{api_endpoint}/BioC_json/{target_id}/unicode"
-        logger.info(f"Fetching BioC JSON from {bioc_url}...")
-        
-        try:
-            resp = self._get_with_retry(bioc_url)
-            bioc_data = resp.json()
-            
-            # 3. Save to cache
-            if self.cache_dir and bioc_data:
-                cache_file = self._get_cache_path(doi)
-                try:
-                    os.makedirs(cache_file.parent, exist_ok=True)
-                    with open(cache_file, "w", encoding="utf-8") as f:
-                        json.dump(bioc_data, f, indent=2)
-                    logger.debug(f"Saved PMC BioC JSON to cache: {doi}")
-                except Exception as e:
-                    logger.error(f"Failed to save PMC cache file {cache_file}: {e}")
-                    
-            return bioc_data
-        except Exception as e:
-            logger.error(f"Failed to fetch BioC JSON from {bioc_url}: {e}")
-            raise ValueError(f"Failed to retrieve BioC JSON for target ID {target_id}: {e}") from e
+        # Try PMCID full text first if available
+        if pmcid:
+            bioc_url = f"{self.bionlp_base_url}/pmcoa.cgi/BioC_json/{pmcid}/unicode"
+            logger.info(f"Fetching BioC JSON full text from PMC: {bioc_url}")
+            try:
+                resp = self._get_with_retry(bioc_url)
+                # Check for standard API response containing "No result can be found" in a 200 response
+                if "[Error]" in resp.text and "No result" in resp.text:
+                    logger.warning(f"PMC full text BioC JSON not found for {pmcid} (might not be open access).")
+                else:
+                    bioc_data = resp.json()
+            except Exception as e:
+                logger.warning(f"Failed to fetch open access BioC JSON for {pmcid}: {e}")
+                last_error = e
+
+        # Fallback to PMID abstract if full text failed or wasn't available
+        if not bioc_data and pmid:
+            bioc_url = f"{self.bionlp_base_url}/pubmed.cgi/BioC_json/{pmid}/unicode"
+            logger.info(f"Falling back to fetch PubMed abstract BioC JSON: {bioc_url}")
+            try:
+                resp = self._get_with_retry(bioc_url)
+                if "[Error]" in resp.text and "No result" in resp.text:
+                    logger.warning(f"PubMed abstract BioC JSON not found for {pmid}.")
+                else:
+                    bioc_data = resp.json()
+            except Exception as e:
+                logger.error(f"Failed to fetch PubMed abstract BioC JSON for {pmid}: {e}")
+                last_error = e
+
+        if not bioc_data:
+            raise ValueError(
+                f"Failed to retrieve BioC JSON for DOI {doi} (PMCID: {pmcid}, PMID: {pmid}). "
+                f"Last error: {last_error}"
+            )
+
+        # 3. Save to cache
+        if self.cache_dir and bioc_data:
+            cache_file = self._get_cache_path(doi)
+            try:
+                os.makedirs(cache_file.parent, exist_ok=True)
+                with open(cache_file, "w", encoding="utf-8") as f:
+                    json.dump(bioc_data, f, indent=2)
+                logger.debug(f"Saved PMC/PubMed BioC JSON to cache: {doi}")
+            except Exception as e:
+                logger.error(f"Failed to save PMC/PubMed cache file {cache_file}: {e}")
+                
+        return bioc_data

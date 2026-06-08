@@ -16,6 +16,11 @@ class LMStudioProvider(LLMProvider):
     def model(self):
         if self._model is None:
             import lmstudio as lms
+            try:
+                lms.set_sync_api_timeout(3600.0)
+                logger.info("Set LM Studio SDK message timeout to 3600.0 seconds (1 hour) to support large contexts.")
+            except Exception as e:
+                logger.warning(f"Could not set LM Studio sync API timeout: {e}")
             logger.info(f"Connecting to local LM Studio model: {self.model_name}...")
             try:
                 self._model = lms.llm(self.model_name)

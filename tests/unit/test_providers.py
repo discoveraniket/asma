@@ -61,11 +61,12 @@ def test_lmstudio_provider_lazy_loading():
     provider = LMStudioProvider(model_name="test_model")
     assert provider._model is None
     
-    with patch("lmstudio.llm") as mock_llm:
+    with patch("lmstudio.llm") as mock_llm, patch("lmstudio.set_sync_api_timeout") as mock_set_timeout:
         mock_llm.return_value = MagicMock()
         model = provider.model
         assert model is not None
         mock_llm.assert_called_once_with("test_model")
+        mock_set_timeout.assert_called_once_with(3600.0)
 
 def test_lmstudio_provider_context_safety_checks():
     provider = LMStudioProvider(model_name="test_model")
@@ -84,4 +85,33 @@ def test_lmstudio_provider_context_safety_checks():
     mock_model.respond.return_value = MagicMock(content="Success response")
     res = provider.respond("test prompt", ignore_context_limit=True)
     assert res == "Success response"
+
+@responses.activate
+def test_pmc_fetcher_fallback_to_pubmed():
+    doi = "10.1000/xyz123"
+    fetcher = PmcFetcher(email="test@example.com", tool="test_tool")
+    
+    # 1. Mock the ID Converter API response
+    id_conv_url = f"https://pmc.ncbi.nlm.nih.gov/tools/idconv/api/v1/articles/?ids={doi}&format=json&tool=test_tool&email=test@example.com"
+    id_conv_data = {
+        "records": [
+            {
+                "pmcid": "PMC12345",
+                "pmid": "98765"
+            }
+        ]
+    }
+    responses.add(responses.GET, id_conv_url, json=id_conv_data, status=200)
+    
+    # 2. Mock the BioC fetch response from PMC returning the "No result can be found" error page
+    bioc_pmc_url = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pmcoa.cgi/BioC_json/PMC12345/unicode"
+    responses.add(responses.GET, bioc_pmc_url, body="[Error]: No result can be found.", status=200)
+    
+    # 3. Mock the BioC fallback response from PubMed Central abstract endpoint
+    bioc_pubmed_url = "https://www.ncbi.nlm.nih.gov/research/bionlp/RESTful/pubmed.cgi/BioC_json/98765/unicode"
+    bioc_data = [{"documents": [{"id": "98765", "passages": [{"text": "Abstract text only"}]}]}]
+    responses.add(responses.GET, bioc_pubmed_url, json=bioc_data, status=200)
+    
+    res = fetcher.fetch_by_doi(doi)
+    assert res == bioc_data
 
