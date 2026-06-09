@@ -23,7 +23,8 @@ class LMStudioProvider(LLMProvider):
                 logger.warning(f"Could not set LM Studio sync API timeout: {e}")
             logger.info(f"Connecting to local LM Studio model: {self.model_name}...")
             try:
-                self._model = lms.llm(self.model_name)
+                client = lms.Client()
+                self._model = client.llm.model(self.model_name)
             except Exception as e:
                 logger.error(f"Failed to connect to LM Studio model '{self.model_name}': {e}")
                 raise RuntimeError(f"Could not load LM Studio model '{self.model_name}'. Is LM Studio running? Error: {e}") from e
@@ -100,6 +101,7 @@ class LMStudioProvider(LLMProvider):
             return result.content
         except Exception as e:
             logger.error(f"LM Studio response generation failed: {e}")
+            self._model = None
             raise RuntimeError(f"LM Studio inference error: {e}") from e
 
     def respond_chat(
@@ -175,4 +177,5 @@ class LMStudioProvider(LLMProvider):
             return result.content
         except Exception as e:
             logger.error(f"LM Studio chat response generation failed: {e}")
+            self._model = None
             raise RuntimeError(f"LM Studio chat inference error: {e}") from e

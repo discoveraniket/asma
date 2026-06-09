@@ -2,6 +2,8 @@ import logging
 import hashlib
 import json
 import os
+import backoff
+import requests
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from crossref.restful import Works
@@ -58,7 +60,15 @@ class CrossrefResolver(MetadataResolver):
         # 2. Query Crossref API
         logger.info(f"Validating DOI on Crossref: {doi}")
         try:
-            result = self.works.doi(doi)
+            @backoff.on_exception(
+                backoff.expo,
+                requests.exceptions.RequestException,
+                max_tries=3
+            )
+            def _query():
+                return self.works.doi(doi)
+
+            result = _query()
             if result is None:
                 logger.warning(f"Crossref could not find DOI: {doi}")
                 return None

@@ -1,5 +1,6 @@
 import pytest
 import responses
+import requests
 from unittest.mock import MagicMock, patch
 from asma.providers.resolver_crossref import CrossrefResolver
 from asma.providers.fetcher_pmc import PmcFetcher
@@ -61,11 +62,16 @@ def test_lmstudio_provider_lazy_loading():
     provider = LMStudioProvider(model_name="test_model")
     assert provider._model is None
     
-    with patch("lmstudio.llm") as mock_llm, patch("lmstudio.set_sync_api_timeout") as mock_set_timeout:
-        mock_llm.return_value = MagicMock()
+    with patch("lmstudio.Client") as mock_client_class, patch("lmstudio.set_sync_api_timeout") as mock_set_timeout:
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+        mock_model = MagicMock()
+        mock_client.llm.model.return_value = mock_model
+        
         model = provider.model
-        assert model is not None
-        mock_llm.assert_called_once_with("test_model")
+        assert model == mock_model
+        mock_client_class.assert_called_once()
+        mock_client.llm.model.assert_called_once_with("test_model")
         mock_set_timeout.assert_called_once_with(3600.0)
 
 def test_lmstudio_provider_context_safety_checks():
@@ -114,4 +120,26 @@ def test_pmc_fetcher_fallback_to_pubmed():
     
     res = fetcher.fetch_by_doi(doi)
     assert res == bioc_data
+
+
+def test_crossref_resolver_retry():
+    doi = "10.1000/retry"
+    resolver = CrossrefResolver()
+    
+    mock_doi = MagicMock()
+    expected_response = {"title": "Test Paper", "DOI": doi}
+    
+    call_count = 0
+    def side_effect(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            raise requests.exceptions.RequestException("Timeout")
+        return expected_response
+        
+    with patch.object(resolver.works, 'doi', side_effect=side_effect):
+        res = resolver.resolve_doi(doi)
+        assert res == expected_response
+        assert call_count == 2
+
 
