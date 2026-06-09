@@ -8,8 +8,9 @@ class LMStudioProvider(LLMProvider):
     """
     Client wrapper for LM Studio's Python SDK to perform inference.
     """
-    def __init__(self, model_name: str = "google/gemma-4-e2b"):
+    def __init__(self, model_name: str = "google/gemma-4-e2b", base_url: str = "http://localhost:1234"):
         self.model_name = model_name
+        self.base_url = base_url
         self._model = None
 
     @property
@@ -23,7 +24,16 @@ class LMStudioProvider(LLMProvider):
                 logger.warning(f"Could not set LM Studio sync API timeout: {e}")
             logger.info(f"Connecting to local LM Studio model: {self.model_name}...")
             try:
-                client = lms.Client()
+                clean_url = self.base_url
+                if clean_url:
+                    for prefix in ("http://", "https://", "ws://", "wss://"):
+                        if clean_url.lower().startswith(prefix):
+                            clean_url = clean_url[len(prefix):]
+                    if "/" in clean_url:
+                        clean_url = clean_url.split("/", 1)[0]
+                else:
+                    clean_url = None
+                client = lms.Client(clean_url)
                 self._model = client.llm.model(self.model_name)
             except Exception as e:
                 logger.error(f"Failed to connect to LM Studio model '{self.model_name}': {e}")

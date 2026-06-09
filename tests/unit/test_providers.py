@@ -70,9 +70,31 @@ def test_lmstudio_provider_lazy_loading():
         
         model = provider.model
         assert model == mock_model
-        mock_client_class.assert_called_once()
+        mock_client_class.assert_called_once_with("localhost:1234")
         mock_client.llm.model.assert_called_once_with("test_model")
         mock_set_timeout.assert_called_once_with(3600.0)
+
+def test_lmstudio_provider_url_cleaning():
+    with patch("lmstudio.Client") as mock_client_class, patch("lmstudio.set_sync_api_timeout"):
+        mock_client = MagicMock()
+        mock_client_class.return_value = mock_client
+        mock_model = MagicMock()
+        mock_client.llm.model.return_value = mock_model
+
+        # Test with https
+        provider = LMStudioProvider(model_name="test_model", base_url="https://127.0.0.1:8080/v1")
+        _ = provider.model
+        mock_client_class.assert_called_with("127.0.0.1:8080")
+
+        # Test with ws and trailing slash
+        provider = LMStudioProvider(model_name="test_model", base_url="ws://localhost:9000/")
+        _ = provider.model
+        mock_client_class.assert_called_with("localhost:9000")
+
+        # Test with empty/None
+        provider = LMStudioProvider(model_name="test_model", base_url=None)
+        _ = provider.model
+        mock_client_class.assert_called_with(None)
 
 def test_lmstudio_provider_context_safety_checks():
     provider = LMStudioProvider(model_name="test_model")
