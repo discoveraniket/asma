@@ -4,6 +4,12 @@ from asma.interfaces.llm import LLMProvider
 
 logger = logging.getLogger(__name__)
 
+PREDICTION_CONFIG_KEYS = {
+    "max_tokens", "temperature", "stop_strings", "top_k_sampling", 
+    "repeat_penalty", "min_p_sampling", "top_p_sampling", "cpu_threads"
+}
+
+
 class LMStudioProvider(LLMProvider):
     """
     Client wrapper for LM Studio's Python SDK to perform inference.
@@ -99,6 +105,14 @@ class LMStudioProvider(LLMProvider):
                     sys.stdout.flush()
                 kwargs["on_prediction_fragment"] = default_prediction_fragment
 
+        # Extract prediction config options and place them inside config dict
+        config_dict = kwargs.pop("config", {}) or {}
+        for key in list(kwargs.keys()):
+            if key in PREDICTION_CONFIG_KEYS:
+                config_dict[key] = kwargs.pop(key)
+        if config_dict:
+            kwargs["config"] = config_dict
+
         logger.info("Sending request to LM Studio...")
         try:
             result = self.model.respond(
@@ -175,6 +189,14 @@ class LMStudioProvider(LLMProvider):
                     sys.stdout.write(frag.content)
                     sys.stdout.flush()
                 kwargs["on_prediction_fragment"] = default_prediction_fragment
+
+        # Extract prediction config options and place them inside config dict
+        config_dict = kwargs.pop("config", {}) or {}
+        for key in list(kwargs.keys()):
+            if key in PREDICTION_CONFIG_KEYS:
+                config_dict[key] = kwargs.pop(key)
+        if config_dict:
+            kwargs["config"] = config_dict
 
         logger.info("Sending chat request to LM Studio...")
         try:

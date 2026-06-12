@@ -8,6 +8,7 @@ from asma.providers.llm_lmstudio import LMStudioProvider
 from asma.core.parser import parse_bioc_to_llm_markdown, parse_bioc_to_human_markdown
 from asma.core.evaluator import Evaluator, clean_llm_response
 from asma.core.ingester import DocumentIngester
+from asma.core.structurer import structure_extractions
 from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response
 from asma.utils.xml_table import parse_xml_table_to_csv
 from asma.utils.document import extract_doi_from_pdf
@@ -30,6 +31,7 @@ __all__ = [
     "Evaluator",
     "clean_llm_response",
     "DocumentIngester",
+    "structure_extractions",
     "clean_text",
     "extract_metadata_llm",
     "parse_xml_table_to_csv",
