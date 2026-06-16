@@ -9,6 +9,7 @@ from asma.core.parser import parse_bioc_to_llm_markdown, parse_bioc_to_human_mar
 from asma.core.evaluator import Evaluator, clean_llm_response
 from asma.core.ingester import DocumentIngester
 from asma.core.structurer import structure_extractions
+from asma.core.cell_extractor import build_extraction_prompt, extract_json_array
 from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response
 from asma.utils.xml_table import parse_xml_table_to_csv
 from asma.utils.document import extract_doi_from_pdf
@@ -38,5 +39,7 @@ __all__ = [
     "extract_doi_from_pdf",
     "validate_doi",
     "split_llm_response",
-    "find_source_sentences"
+    "find_source_sentences",
+    "build_extraction_prompt",
+    "extract_json_array"
 ]
