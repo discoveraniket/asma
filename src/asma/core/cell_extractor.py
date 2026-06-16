@@ -12,7 +12,7 @@ DEFAULT_CELL_TEMPLATE = """### Your Task:
 ### Thought Channel Guidelines (Output in <|channel>thought):
 1. Cleaned Question: Rephrase the user's question in the context of this specific document.
 2. Source Quotes: Copy the exact sentences/paragraphs from the document that contain the answer.
-3. Synthesis: Extract the final Answer Value from your quotes, matching the example format if provided."""
+3. Synthesis: Extract the final Answer Value from your quotes, matching the style/format of the example if provided, but extracting the actual value from the source quotes"""
 
 
 def build_extraction_prompt(
@@ -34,7 +34,7 @@ def build_extraction_prompt(
         
     example_str = ""
     if example_val:
-        example_str = f"- Example format reference: '{example_val}'"
+        example_str = f"- Example style reference (do NOT use this value, only match its format/style): '{example_val}'"
         
     return template_str.format(
         target_column=target_column,
