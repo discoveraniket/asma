@@ -87,18 +87,43 @@ def split_llm_response(
     
     # 1. Custom tag pair override
     if start_tag and end_tag:
-        if start_tag in text and end_tag in text:
-            parts = text.split(end_tag, 1)
-            thought = parts[0].replace(start_tag, "").strip()
-            return thought, parts[1].strip()
+        idx_start = text.lower().find(start_tag.lower())
+        if idx_start != -1:
+            idx_end = text.lower().find(end_tag.lower(), idx_start + len(start_tag))
+            if idx_end != -1:
+                thought = text[idx_start + len(start_tag):idx_end].strip()
+                content = (text[:idx_start] + " " + text[idx_end + len(end_tag):]).strip()
+                return thought, content
         return None, text
 
-    # 2. Lookup standard built-in tag pairs
-    for s_tag, e_tag in BUILTIN_REASONING_TAGS:
-        if s_tag in text and e_tag in text:
-            parts = text.split(e_tag, 1)
-            thought = parts[0].replace(s_tag, "").strip()
-            return thought, parts[1].strip()
+    # 2. Robust regex-based channel thought extraction
+    # Support end tags like <channel|>, </channel>, channel|> case-insensitively
+    end_pattern = r"(?:<channel\|>)|(?:<\/channel>)|(?:channel\|>)"
+    matches = list(re.finditer(end_pattern, text, re.IGNORECASE))
+    if matches:
+        last_match = matches[-1]
+        start, end = last_match.span()
+        thought = text[:start]
+        content = text[end:]
+        
+        # Strip the start tag: <|channel>thought or similar variation
+        start_pattern = r"(?:<\|)?channel>thought"
+        thought = re.sub(start_pattern, "", thought, flags=re.IGNORECASE).strip()
+        # Clean up any leading '<|' or '<' if left over
+        thought = re.sub(r'^<\|?', '', thought).strip()
+        return thought, content.strip()
 
-    # 3. Default fallback: No thought block detected
+    # 3. Lookup standard built-in tag pairs case-insensitively
+    for s_tag, e_tag in BUILTIN_REASONING_TAGS:
+        s_lower, e_lower = s_tag.lower(), e_tag.lower()
+        text_lower = text.lower()
+        idx_start = text_lower.find(s_lower)
+        if idx_start != -1:
+            idx_end = text_lower.find(e_lower, idx_start + len(s_tag))
+            if idx_end != -1:
+                thought = text[idx_start + len(s_tag):idx_end].strip()
+                content = (text[:idx_start] + " " + text[idx_end + len(e_tag):]).strip()
+                return thought, content
+
+    # 4. Default fallback: No thought block detected
     return None, text
