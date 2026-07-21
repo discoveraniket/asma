@@ -1,11 +1,10 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Tuple, Optional
 
 def clean_text(text: str) -> str:
     """
     Remove bracketed citations like [1], [1, 2], [3-5] and normalize whitespace.
     """
-    # Remove bracketed citations like [1], [1, 2], [3-5]
     cleaned = re.sub(r'\[\d+(?:[\s,\u2013-]+\d+)*\]', '', text)
     return re.sub(r'\s+', ' ', cleaned).strip()
 
@@ -58,13 +57,6 @@ def extract_metadata_llm(infons: Dict[str, str]) -> List[str]:
         
     return lines
 
-from typing import Tuple, Optional
-
-BUILTIN_REASONING_TAGS = [
-    ("<|channel>thought", "<channel|>"),  # LM Studio gemma-4-e2b
-    ("<think>", "</think>"),              # DeepSeek models
-    ("<thought>", "</thought>"),          # Generic thought tags
-]
 
 def split_llm_response(
     message: str,
@@ -72,17 +64,12 @@ def split_llm_response(
     end_tag: Optional[str] = None
 ) -> Tuple[Optional[str], str]:
     """
-    Splits raw LLM output into a reasoning thought block and the final response block.
-    
-    Args:
-        message: The raw response string from the LLM.
-        start_tag: Optional custom start tag (e.g. '<think>').
-        end_tag: Optional custom end tag (e.g. '</think>').
-        
-    Returns:
-        A tuple of (thought_content, response_content).
-        thought_content is None if no thought block is found.
+    Splits raw LLM output into a reasoning thought block and the final response block
+    using LM Studio's synthetic reasoning end pattern.
     """
+    if not message:
+        return None, ""
+
     text = message.strip()
     
     # 1. Custom tag pair override
@@ -96,34 +83,14 @@ def split_llm_response(
                 return thought, content
         return None, text
 
-    # 2. Robust regex-based channel thought extraction
-    # Support end tags like <channel|>, </channel>, channel|> case-insensitively
-    end_pattern = r"(?:<channel\|>)|(?:<\/channel>)|(?:channel\|>)"
-    matches = list(re.finditer(end_pattern, text, re.IGNORECASE))
+    # 2. LM Studio synthetic reasoning marker
+    end_pattern = r"__LM_STUDIO_INTERNAL_LSEP_SYNTHETIC_REASONING_END_[a-f0-9]+__"
+    matches = list(re.finditer(end_pattern, text))
     if matches:
         last_match = matches[-1]
         start, end = last_match.span()
-        thought = text[:start]
-        content = text[end:]
-        
-        # Strip the start tag: <|channel>thought or similar variation
-        start_pattern = r"(?:<\|)?channel>thought"
-        thought = re.sub(start_pattern, "", thought, flags=re.IGNORECASE).strip()
-        # Clean up any leading '<|' or '<' if left over
-        thought = re.sub(r'^<\|?', '', thought).strip()
-        return thought, content.strip()
+        thought = text[:start].strip()
+        content = text[end:].strip()
+        return thought if thought else None, content
 
-    # 3. Lookup standard built-in tag pairs case-insensitively
-    for s_tag, e_tag in BUILTIN_REASONING_TAGS:
-        s_lower, e_lower = s_tag.lower(), e_tag.lower()
-        text_lower = text.lower()
-        idx_start = text_lower.find(s_lower)
-        if idx_start != -1:
-            idx_end = text_lower.find(e_lower, idx_start + len(s_tag))
-            if idx_end != -1:
-                thought = text[idx_start + len(s_tag):idx_end].strip()
-                content = (text[:idx_start] + " " + text[idx_end + len(e_tag):]).strip()
-                return thought, content
-
-    # 4. Default fallback: No thought block detected
     return None, text

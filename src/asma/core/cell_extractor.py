@@ -36,7 +36,16 @@ def build_extraction_prompt(
     if example_val:
         example_str = f"- Example style reference (do NOT use this value, only match its format/style): '{example_val}'"
         
-    return template_str.format(
+    safe_template = template_str
+    safe_template = safe_template.replace("{target_column}", "__TARGET_COLUMN__")
+    safe_template = safe_template.replace("{conditions}", "__CONDITIONS__")
+    safe_template = safe_template.replace("{example_format}", "__EXAMPLE_FORMAT__")
+    safe_template = safe_template.replace("{", "{{").replace("}", "}}")
+    safe_template = safe_template.replace("__TARGET_COLUMN__", "{target_column}")
+    safe_template = safe_template.replace("__CONDITIONS__", "{conditions}")
+    safe_template = safe_template.replace("__EXAMPLE_FORMAT__", "{example_format}")
+    
+    return safe_template.format(
         target_column=target_column,
         conditions=conditions_str,
         example_format=example_str
