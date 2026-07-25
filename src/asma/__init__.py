@@ -5,6 +5,7 @@ from asma.interfaces.llm import LLMProvider
 from asma.providers.resolver_crossref import CrossrefResolver
 from asma.providers.fetcher_pmc import PmcFetcher
 from asma.providers.llm_lmstudio import LMStudioProvider
+from asma.providers.llm_gemini import GeminiProvider, AVAILABLE_GEMINI_MODELS, DEFAULT_GEMINI_MODEL
 from asma.core.parser import parse_bioc_to_llm_markdown, parse_bioc_to_human_markdown
 from asma.core.evaluator import Evaluator, clean_llm_response
 from asma.core.ingester import DocumentIngester
