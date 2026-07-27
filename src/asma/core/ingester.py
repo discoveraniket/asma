@@ -61,26 +61,27 @@ class DocumentIngester:
             if pdf_file.exists():
                 title = pdf_file.stem.replace('_', ' ').replace('-', ' ').title()
 
-        # 2. Fetch PMC XML/JSON Full Text (with fallback to local PDF via pymupdf4llm)
         clean_content = None
         raw_content = None
-        pmc_error = None
 
-        try:
-            bioc_data = self.fetcher.fetch_by_doi(doi)
-            clean_content = parse_bioc_to_human_markdown(bioc_data)
-            raw_content = parse_bioc_to_llm_markdown(bioc_data)
-        except Exception as e:
-            pmc_error = e
-            logger.warning(f"NCBI PMC fetch failure for DOI {doi}: {e}")
+        # 2. Try PMC online XML fetch first if DOI is present
+        if doi:
+            try:
+                bioc_data = self.fetcher.fetch_by_doi(doi)
+                if bioc_data:
+                    clean_content = parse_bioc_to_human_markdown(bioc_data)
+                    raw_content = parse_bioc_to_llm_markdown(bioc_data)
+            except Exception as e:
+                logger.warning(f"NCBI PMC fetch failure for DOI {doi} (possibly offline): {e}")
 
-        # 3. Fallback to local PDF parsing via pymupdf4llm if PMC failed
-        if (clean_content is None or raw_content is None) and pdf_path:
+        # 3. Fallback to local PDF extraction if PMC didn't return text (e.g. offline or not on PMC)
+        if (not clean_content or not raw_content) and pdf_path:
             pdf_file = Path(pdf_path)
             if pdf_file.exists():
+                # Primary: pymupdf4llm
                 try:
                     import pymupdf4llm
-                    logger.info(f"Extracting local PDF content for DOI {doi} using pymupdf4llm: {pdf_path}")
+                    logger.info(f"Extracting local PDF content using pymupdf4llm: {pdf_path}")
                     pdf_md = pymupdf4llm.to_markdown(str(pdf_file))
                     if pdf_md and pdf_md.strip():
                         clean_content = pdf_md.strip()
@@ -88,7 +89,26 @@ class DocumentIngester:
                 except Exception as pdf_err:
                     logger.error(f"pymupdf4llm extraction failed for {pdf_path}: {pdf_err}")
 
-        if clean_content is None or raw_content is None:
+                # Secondary: PyMuPDF fitz raw text fallback
+                if not clean_content or not raw_content:
+                    try:
+                        import fitz
+                        logger.info(f"Extracting local PDF content using fitz text fallback: {pdf_path}")
+                        doc = fitz.open(str(pdf_file))
+                        pages_text = [page.get_text() for page in doc]
+                        full_text = "\n\n".join(t for t in pages_text if t and t.strip())
+                        if full_text and full_text.strip():
+                            clean_content = full_text.strip()
+                            raw_content = full_text.strip()
+                    except Exception as fitz_err:
+                        logger.error(f"fitz text extraction failed for {pdf_path}: {fitz_err}")
+
+        # Final failsafe: If text is still empty and pdf_path is provided (e.g. scanned image PDF), return placeholder
+        if (not clean_content or not raw_content) and pdf_path:
+            clean_content = "# Document Content\n\nNo selectable digital text found in this PDF document. It may be a scanned image or protected PDF."
+            raw_content = clean_content
+
+        if not clean_content or not raw_content:
             err_msg = f"PMC article extraction failed: {pmc_error}" if pmc_error else "Failed to extract article text."
             raise RuntimeError(err_msg)
 
