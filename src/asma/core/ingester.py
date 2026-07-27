@@ -28,26 +28,38 @@ class DocumentIngester:
         Returns:
             Dict containing title, authors, journal, cleanContent, and rawContent.
         """
-        doi = doi.strip()
-        if not doi:
-            raise ValueError("DOI value is empty.")
+        doi = (doi or "").strip()
+        if not doi and not pdf_path:
+            raise ValueError("Both DOI and pdf_path are empty.")
 
-        # 1. Resolve DOI
-        doi_meta = self.resolver.resolve_doi(doi)
-        if doi_meta is None:
-            raise ValueError(f"DOI '{doi}' validation failed on Crossref registry.")
+        # 1. Resolve DOI metadata (with graceful offline fallback)
+        title = "Unknown Title"
+        authors = "Local Document"
+        journal = "Local PDF Document"
 
-        title = doi_meta.get('title', [None])[0] or "Unknown Title"
-        authors_list = doi_meta.get('author', [])
-        authors = format_crossref_authors(authors_list)
-        journal = doi_meta.get('container-title', [None])[0] or "Unknown Journal"
+        if doi:
+            try:
+                doi_meta = self.resolver.resolve_doi(doi)
+                if doi_meta:
+                    title = doi_meta.get('title', [None])[0] or title
+                    authors_list = doi_meta.get('author', [])
+                    authors = format_crossref_authors(authors_list)
+                    journal = doi_meta.get('container-title', [None])[0] or journal
 
-        pub_date = doi_meta.get('published-print') or doi_meta.get('created')
-        if pub_date:
-            date_parts = pub_date.get('date-parts', [[None]])
-            year = date_parts[0][0]
-            if year:
-                authors = f"{authors} ({year})"
+                    pub_date = doi_meta.get('published-print') or doi_meta.get('created')
+                    if pub_date:
+                        date_parts = pub_date.get('date-parts', [[None]])
+                        year = date_parts[0][0]
+                        if year:
+                            authors = f"{authors} ({year})"
+            except Exception as meta_err:
+                logger.warning(f"Crossref DOI resolution failed for {doi} (possibly offline): {meta_err}")
+
+        # Fallback title from PDF file name if Crossref did not resolve a title
+        if (title == "Unknown Title" or not title) and pdf_path:
+            pdf_file = Path(pdf_path)
+            if pdf_file.exists():
+                title = pdf_file.stem.replace('_', ' ').replace('-', ' ').title()
 
         # 2. Fetch PMC XML/JSON Full Text (with fallback to local PDF via pymupdf4llm)
         clean_content = None
