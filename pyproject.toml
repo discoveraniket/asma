@@ -24,6 +24,8 @@ dependencies = [
     "lmstudio>=0.1.0",
     "tqdm>=4.65.0",
     "lxml>=4.9.0",
+    "pymupdf>=1.22.0",
+    "pymupdf4llm>=0.0.1",
 ]
 
 [project.optional-dependencies]
