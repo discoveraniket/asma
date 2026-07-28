@@ -38,11 +38,16 @@ Do not include any introductory or concluding sentences outside of the table.
 
 from asma.utils.text import split_llm_response
 
+import re
+
 def clean_llm_response(message: str) -> str:
     """
     Cleans special thought or channel blocks from local LLM response messages.
     """
-    _, response = split_llm_response(message)
+    if not message:
+        return ""
+    cleaned = re.sub(r'<(?:think|\|channel>thought)[\s\S]*?(?:</think>|<channel\|>)', '', message, flags=re.IGNORECASE).strip()
+    _, response = split_llm_response(cleaned)
     return response
 
 class Evaluator:

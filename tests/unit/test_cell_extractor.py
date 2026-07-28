@@ -14,7 +14,7 @@ def test_build_extraction_prompt_default():
     
     assert "**QUESTION**: Find the best value/values for 'Latent Period (min)'" in prompt
     assert "When the 'Phage' is 'Phage A'\nand \nthe 'Target Host' is 'Strain X'" in prompt
-    assert "- Example format reference: '15'" in prompt
+    assert "- Example style reference (do NOT use this value, only match its format/style): '15'" in prompt
 
 
 def test_build_extraction_prompt_custom_template():
@@ -26,7 +26,7 @@ def test_build_extraction_prompt_custom_template():
         template_str=custom_template
     )
     
-    assert prompt == "Target is MOI. Conditions: When Phage = A. Example: - Example format reference: '0.1'"
+    assert prompt == "Target is MOI. Conditions: When Phage = A. Example: - Example style reference (do NOT use this value, only match its format/style): '0.1'"
 
 
 def test_split_llm_response_with_tags():

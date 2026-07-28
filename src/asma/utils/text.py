@@ -83,7 +83,14 @@ def split_llm_response(
                 return thought, content
         return None, text
 
-    # 2. LM Studio synthetic reasoning marker
+    # 2. Check for <think>...</think> or <|channel>thought...<channel|> tags
+    tag_match = re.search(r'<(?:think>|\|channel>thought)[\s\r\n]*([\s\S]*?)[\s\r\n]*?(?:</think>|<channel\|>)', text, re.IGNORECASE)
+    if tag_match:
+        thought = tag_match.group(1).strip()
+        content = re.sub(r'<(?:think>|\|channel>thought)[\s\S]*?(?:</think>|<channel\|>)', '', text, flags=re.IGNORECASE).strip()
+        return thought if thought else None, content
+
+    # 3. LM Studio synthetic reasoning marker
     end_pattern = r"__LM_STUDIO_INTERNAL_LSEP_SYNTHETIC_REASONING_END_[a-f0-9]+__"
     matches = list(re.finditer(end_pattern, text))
     if matches:
