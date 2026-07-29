@@ -63,7 +63,8 @@ def structure_extractions(
     extractions: Dict[str, str],
     fields: List[str],
     llm_provider: LLMProvider,
-    paper_id: Optional[str] = None
+    paper_id: Optional[str] = None,
+    history_collector: Optional[List[Dict[str, str]]] = None
 ) -> List[Dict[str, str]]:
     """
     Takes flat key-value extractions and structures them into a list of relational records
@@ -92,12 +93,17 @@ def structure_extractions(
         )
         logger.info(f"Received structuring response: {raw_response}")
         
+        history_entries = [
+            {"role": "Pass 2 System (Structuring)", "content": system_instruction},
+            {"role": "Pass 2 User (Structuring)", "content": prompt},
+            {"role": "Pass 2 Assistant (Structuring)", "content": raw_response}
+        ]
+
+        if history_collector is not None:
+            history_collector.extend(history_entries)
+
         if paper_id:
-            structuring_history[paper_id] = [
-                {"role": "Pass 2 System (Structuring)", "content": system_instruction},
-                {"role": "Pass 2 User (Structuring)", "content": prompt},
-                {"role": "Pass 2 Assistant (Structuring)", "content": raw_response}
-            ]
+            structuring_history[paper_id] = history_entries
 
         
         # If response contains a thinking block or thought tag, we split it

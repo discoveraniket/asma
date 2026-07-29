@@ -52,23 +52,7 @@ def build_extraction_prompt(
     ).strip()
 
 
-def split_llm_response(text: str) -> Tuple[str, str]:
-    """
-    Robustly separates the thought channel block (<|channel>thought ... <channel|>) from the final output response content.
-    """
-    end_pattern = r"(?:<channel\|>)|(?:<\/channel>)|(?:channel\|>)"
-    matches = list(re.finditer(end_pattern, text, re.IGNORECASE))
-    if matches:
-        last_match = matches[-1]
-        start, end = last_match.span()
-        thought = text[:start]
-        content = text[end:]
-        
-        start_pattern = r"(?:<\|)?channel>thought"
-        thought = re.sub(start_pattern, "", thought, flags=re.IGNORECASE)
-        return thought.strip(), content.strip()
-        
-    return "", text.strip()
+from asma.utils.text import split_llm_response
 
 
 def extract_json_array(text: str) -> List[str]:

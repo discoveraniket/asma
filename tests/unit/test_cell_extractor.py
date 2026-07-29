@@ -44,7 +44,7 @@ def test_split_llm_response_with_tags():
 def test_split_llm_response_no_tags():
     llm_output = '["15"]'
     thought, content = split_llm_response(llm_output)
-    assert thought == ""
+    assert not thought
     assert content == '["15"]'
 
 

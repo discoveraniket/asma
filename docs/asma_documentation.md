@@ -1,23 +1,28 @@
-# `asma` Python SDK Documentation
+# `asma` Python Engine Documentation
 
-**`asma`** (**Automated System for Mining Articles**) is a lightweight, modular, and developer-friendly Python library designed to streamline the process of transforming unstructured scientific research manuscripts (PDFs) into structured, queryable data using NCBI/PubMed APIs and Local Large Language Models (LLMs).
+**`asma`** (**Automated System for Mining Articles**) is a lightweight, modular, and developer-friendly Python engine and library designed to transform unstructured scientific manuscripts (PDFs, BioC XML, Markdown) into structured, queryable data using NCBI/PubMed APIs, Crossref, and LLMs (Google Gemini API & local LM Studio).
+
+> [!NOTE]
+> **Scope Boundary**: `asma` is a **headless Python library**. It contains no web server, database, or UI components. Higher-level applications (such as the **`litsift`** desktop/web workspace) import `asma` to perform core document parsing, LLM extraction, and sentence grounding.
 
 ---
 
 ## Table of Contents
 1. [Installation & Requirements](#1-installation--requirements)
-2. [Prerequisites (LM Studio Setup)](#2-prerequisites-lm-studio-setup)
+2. [LLM Provider Prerequisites (Gemini & LM Studio)](#2-llm-provider-prerequisites-gemini--lm-studio)
 3. [Quick Start Example](#3-quick-start-example)
 4. [API Reference & Core Modules](#4-api-reference--core-modules)
-   - [Document Processing (`asma.utils.document`)](#document-processing-asmautilsdocument)
-   - [DOI Validation (`asma.utils.doi`)](#doi-validation-asmautilsdoi)
+   - [Document Ingestion & Parsing (`asma.core.ingester`)](#document-ingestion--parsing-asmacoreingester)
+   - [Document Processing & DOI Extraction (`asma.utils.document`)](#document-processing--doi-extraction-asmautilsdocument)
+   - [DOI Validation & Resolution (`asma.providers.resolver_crossref`)](#doi-validation--resolution-asmaprovidersresolver_crossref)
    - [Article Fetching (`asma.providers.fetcher_pmc`)](#article-fetching-asmaprovidersfetcher_pmc)
    - [BioC-to-Markdown Parsers (`asma.core.parser`)](#bioc-to-markdown-parsers-asmacoreparser)
-   - [Dynamic Prompt Engineering (`asma.config`)](#dynamic-prompt-engineering-asmaconfig)
-   - [LLM Inference Client (`asma.providers.llm_lmstudio`)](#llm-inference-client-asmaprovidersllm_lmstudio)
+   - [Cell Extraction & Prompting (`asma.core.cell_extractor`)](#cell-extraction--prompting-asmacorecell_extractor)
+   - [LLM Inference Providers (`asma.providers`)](#llm-inference-providers-asmaproviders)
+   - [Source Sentence Alignment & Grounding (`asma.utils.alignment`)](#source-sentence-alignment--grounding-asmautilsalignment)
    - [Evaluation Framework (`asma.core.evaluator`)](#evaluation-framework-asmacoreevaluator)
-   - [Custom Tag Splitting (`asma.utils.text`)](#custom-tag-splitting-asmautilstext)
-5. [Advanced Customization & Future Extension](#5-advanced-customization--future-extension)
+   - [Text Cleaning & Tag Splitting (`asma.utils.text`)](#text-cleaning--tag-splitting-asmautilstext)
+5. [Advanced Customization & Extension](#5-advanced-customization--extension)
 
 ---
 
@@ -42,70 +47,63 @@ All dependencies are declared and managed under PEP-621 standards in the `pyproj
 
 ---
 
-## 2. Prerequisites (LM Studio Setup)
+## 2. LLM Provider Prerequisites (Gemini & LM Studio)
 
-Before running the LLM inference or evaluation steps, you must have **LM Studio** loaded and running locally:
+`asma` supports both cloud-based LLM APIs and offline local models:
+
+### A. Google Gemini API Provider (`GeminiProvider`)
+Set your Google API Key as an environment variable or pass it directly:
+```bash
+set GEMINI_API_KEY=your_api_key_here
+```
+
+### B. LM Studio Provider (`LMStudioProvider`)
+For local, offline inference:
 1. Open **LM Studio**.
-2. Select your desired reasoning model (e.g., `google/gemma-4-e2b`).
-3. Load the model and start the **Local Inference Server**.
-4. In the right-hand settings panel under **Hardware Settings**, ensure the **Context Length** is configured to fit your target articles (we recommend `16000` or `24000` tokens for full research papers).
+2. Select and load your model (e.g. `google/gemma-4-e2b`).
+3. Start the **Local Inference Server** (`http://127.0.0.1:1234`).
+4. Set context length to `16000`+ tokens in LM Studio hardware settings.
 
 ---
 
 ## 3. Quick Start Example
 
-Here is a complete, copy-pasteable script showing the entire pipeline running end-to-end on a local PDF file:
+Here is a complete example of running document ingestion, extraction, and source sentence grounding:
 
 ```python
-import json
 from asma import (
-    AsmaConfig,
-    extract_doi_from_pdf,
-    validate_doi,
-    PmcFetcher,
-    parse_bioc_to_llm_markdown,
-    LMStudioProvider,
-    split_llm_response
+    DocumentIngester,
+    GeminiProvider,
+    build_extraction_prompt,
+    extract_json_array,
+    find_source_sentences
 )
 
-# 1. Configuration Setup
-config = AsmaConfig(
-    model_name="google/gemma-4-e2b",
-    ncbi_email="researcher@example.com"
-)
+# 1. Ingest PDF, Markdown, or XML file
+ingester = DocumentIngester()
+doc_text = ingester.ingest_file("paper.pdf")
 
-# 2. Extract DOI from PDF
-pdf_file = "pdf/36374021.pdf"
-doi = extract_doi_from_pdf(pdf_file, max_pages=2)
-print(f"Extracted DOI: {doi}")
+# 2. Build extraction prompt for target fields
+target_fields = [
+    {"name": "organism", "description": "Target organism studied"},
+    {"name": "sample_size", "description": "Number of participants/samples"}
+]
+prompt = build_extraction_prompt(doc_text, target_fields)
 
-# 3. Validate DOI via Crossref
-if not validate_doi(doi, method="crossref"):
-    raise ValueError("Invalid DOI detected on Crossref registry.")
+# 3. Initialize Gemini LLM Provider
+llm = GeminiProvider(model_name="gemini-2.5-flash")
+response_text = llm.respond(prompt)
 
-# 4. Fetch BioC JSON from NCBI PMC API
-fetcher = PmcFetcher(email=config.ncbi_email)
-bioc_data = fetcher.fetch_by_doi(doi)
+# 4. Extract structured JSON results
+extractions = extract_json_array(response_text)
+print("Extracted fields:", extractions)
 
-# 5. Parse JSON to LLM-friendly Markdown
-llm_friendly_md = parse_bioc_to_llm_markdown(bioc_data)
-
-# 6. Initialize local LLM client
-llm = LMStudioProvider(model_name=config.model_name)
-
-# 7. Dynamically construct extraction prompt
-prompt = config.build_prompt(document=llm_friendly_md)
-
-# 8. Run inference (streams ingestion progress & live tokens to console)
-raw_response = llm.respond(prompt, temperature=0.1)
-
-# 9. Clean and split reasoning thought block from final answer
-thought, answer = split_llm_response(raw_response)
-
-print("\n=== Reasonings ===")
-print(thought)
-print("\n=== Extracted Schema ===")
-print(answer)
+# 5. Ground assertions to verbatim source text
+for item in extractions:
+    val = item.get("value")
+    if val:
+        sources = find_source_sentences(val, doc_text)
+        print(f"Grounding sources for '{val}':", sources)
 ```
 
 ---
