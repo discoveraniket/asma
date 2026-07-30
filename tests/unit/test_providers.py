@@ -165,3 +165,30 @@ def test_crossref_resolver_retry():
         assert call_count == 2
 
 
+def test_get_llm_provider_factory():
+    from asma import get_llm_provider, GeminiProvider, LMStudioProvider
+
+    # Gemini Cloud API configuration
+    gemini_config = {
+        "llm_provider": "gemini",
+        "gemini_api_key": "test_api_key",
+        "gemini_model_name": "gemini-2.5-flash",
+        "enable_thinking": True
+    }
+    g_provider = get_llm_provider(gemini_config)
+    assert isinstance(g_provider, GeminiProvider)
+    assert g_provider.api_key == "test_api_key"
+    assert g_provider.model_name == "gemini-2.5-flash"
+
+    # LM Studio Local configuration
+    lm_config = {
+        "llm_provider": "lmstudio",
+        "llm_model_name": "local-gemma",
+        "llm_base_url": "http://127.0.0.1:1234"
+    }
+    lm_provider = get_llm_provider(lm_config)
+    assert isinstance(lm_provider, LMStudioProvider)
+    assert lm_provider.model_name == "local-gemma"
+
+
+

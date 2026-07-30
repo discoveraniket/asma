@@ -101,3 +101,44 @@ def split_llm_response(
         return thought if thought else None, content
 
     return None, text
+
+
+def extract_agentic_update(reply: str) -> Optional[str]:
+    """
+    Extracts structured update_value string or JSON payload from conversational LLM chat responses.
+    
+    Example:
+        extract_agentic_update('```json\n{"update_value": "Phage T4"}\n```') -> "Phage T4"
+    """
+    if not reply:
+        return None
+
+    update_match = re.search(r'```json\s*\{\s*"update_value"\s*:\s*(.*?)\s*\}\s*```', reply, re.DOTALL | re.IGNORECASE)
+    if not update_match:
+        update_match = re.search(r'\{\s*"update_value"\s*:\s*([^}]+)\s*\}', reply, re.DOTALL | re.IGNORECASE)
+
+    if not update_match:
+        return None
+
+    raw_val = update_match.group(1).strip()
+    updated_value = None
+    try:
+        import json
+        parsed = json.loads(raw_val)
+        if isinstance(parsed, list):
+            if len(parsed) > 1:
+                updated_value = "\n".join([f"• {v.strip()}" for v in parsed if v and str(v).strip()])
+            elif parsed:
+                updated_value = str(parsed[0]).strip()
+        elif parsed is not None:
+            updated_value = str(parsed).strip()
+    except Exception:
+        clean_str = raw_val.strip('"\' ')
+        if clean_str:
+            updated_value = clean_str
+
+    if updated_value and updated_value.lower() not in ("null", "none", "false", "", "not specified"):
+        return updated_value
+
+    return None
+

@@ -11,11 +11,12 @@ from asma.core.evaluator import Evaluator, clean_llm_response
 from asma.core.ingester import DocumentIngester
 from asma.core.structurer import structure_extractions
 from asma.core.cell_extractor import build_extraction_prompt, extract_json_array
-from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response
+from asma.providers import get_llm_provider
+from asma.utils.text import clean_text, extract_metadata_llm, split_llm_response, extract_agentic_update
 from asma.utils.xml_table import parse_xml_table_to_csv
 from asma.utils.document import extract_doi_from_pdf
 from asma.utils.doi import validate_doi
-from asma.utils.alignment import find_source_sentences
+from asma.utils.alignment import find_source_sentences, generate_anchor_ids
 
 __all__ = [
     "AsmaConfig",
@@ -28,6 +29,10 @@ __all__ = [
     "CrossrefResolver",
     "PmcFetcher",
     "LMStudioProvider",
+    "GeminiProvider",
+    "AVAILABLE_GEMINI_MODELS",
+    "DEFAULT_GEMINI_MODEL",
+    "get_llm_provider",
     "parse_bioc_to_llm_markdown",
     "parse_bioc_to_human_markdown",
     "Evaluator",
@@ -40,7 +45,10 @@ __all__ = [
     "extract_doi_from_pdf",
     "validate_doi",
     "split_llm_response",
+    "extract_agentic_update",
     "find_source_sentences",
+    "generate_anchor_ids",
     "build_extraction_prompt",
     "extract_json_array"
 ]
+

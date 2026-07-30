@@ -61,3 +61,27 @@ def test_split_llm_response():
     thought, response = split_llm_response(raw_plain)
     assert thought is None
     assert response == "Plain text only"
+
+
+
+def test_generate_anchor_ids():
+    from asma import generate_anchor_ids
+    anchors = generate_anchor_ids("Phage Name", 3)
+    assert anchors == ["phage-name-anchor-1", "phage-name-anchor-2", "phage-name-anchor-3"]
+
+    empty_anchors = generate_anchor_ids("", 1)
+    assert empty_anchors == ["anchor-anchor-1"]
+
+
+def test_extract_agentic_update():
+    from asma import extract_agentic_update
+
+    reply_json = 'Some reasoning\n```json\n{\n  "update_value": "Bacteriophage T4"\n}\n```'
+    assert extract_agentic_update(reply_json) == "Bacteriophage T4"
+
+    reply_list = '```json\n{\n  "update_value": ["Host A", "Host B"]\n}\n```'
+    assert extract_agentic_update(reply_list) == "• Host A\n• Host B"
+
+    reply_invalid = 'No json update block'
+    assert extract_agentic_update(reply_invalid) is None
+

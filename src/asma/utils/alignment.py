@@ -104,3 +104,23 @@ def find_source_sentences(document_text: str, value: str, reasoning: str, limit:
         return [item[0] for item in reasoning_matches[:limit]]
         
     return []
+
+
+def generate_anchor_ids(field_name: str, count: int) -> List[str]:
+    """
+    Generates URL/DOM-safe sentence anchor identifiers for a given field name and sentence count.
+    
+    Example:
+        generate_anchor_ids("Phage Name", 2) -> ["phage-name-anchor-1", "phage-name-anchor-2"]
+    """
+    if not field_name:
+        field_safe = "anchor"
+    else:
+        field_safe = "".join([c if c.isalnum() else "-" for c in field_name.lower()]).strip("-")
+        while "--" in field_safe:
+            field_safe = field_safe.replace("--", "-")
+        if not field_safe:
+            field_safe = "anchor"
+
+    return [f"{field_safe}-anchor-{i+1}" for i in range(count)]
+
